@@ -36,6 +36,16 @@ export function initAnalytics() {
       },
     },
   })
+  // Team/test browsers: open the site once with ?internal=1 (or ?internal=0 to undo).
+  // They are tagged internal=true and excluded from dashboard numbers by the project's test filter.
+  try {
+    const flag = new URLSearchParams(location.search).get('internal')
+    if (flag === '1') localStorage.setItem('ea-internal', '1')
+    if (flag === '0') localStorage.removeItem('ea-internal')
+    posthog.register({ internal: localStorage.getItem('ea-internal') === '1' })
+  } catch {
+    /* storage blocked */
+  }
 }
 
 const SCREENS: [RegExp, string][] = [
