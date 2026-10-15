@@ -4,6 +4,7 @@ import { useEffect } from 'react'
 import { HashRouter, Navigate, Route, Routes, useLocation } from 'react-router-dom'
 import { music } from './lib/music'
 import './lib/sfx'
+import { initAnalytics, trackScreen } from './lib/analytics'
 import './index.css'
 import { Welcome } from './screens/Welcome'
 import { ChooseLearner } from './screens/ChooseLearner'
@@ -26,8 +27,11 @@ import { Teacher } from './screens/teacher/Teacher'
 function MusicRoutes() {
   const { pathname } = useLocation()
   useEffect(() => music.setAllowed(!pathname.startsWith('/parent') && !pathname.startsWith('/teacher')), [pathname])
+  useEffect(() => trackScreen(pathname), [pathname])
   return null
 }
+
+initAnalytics()
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

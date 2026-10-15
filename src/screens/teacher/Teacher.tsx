@@ -8,6 +8,7 @@ import { ACTIVITIES } from '../../lib/content'
 import { effectiveMastery, pct } from '../../lib/engine'
 import { Bar, Card, fmtDate } from '../../components/ui'
 import type { SkillId } from '../../lib/types'
+import { track } from '../../lib/analytics'
 
 const SHORT: Partial<Record<SkillId, string>> = { spelling: 'Spell', reading: 'Read', vocabulary: 'Vocab', grammar: 'Gram', speaking: 'Speak', writing: 'Write', listening: 'Listen' }
 const overallOf = (s: ClassStudent) => JUNIOR_SKILLS.reduce((n, k) => n + (s.mastery[k] ?? 0), 0) / JUNIOR_SKILLS.length
@@ -177,7 +178,10 @@ export function Teacher() {
                   const o = overallOf(s)
                   const flag = o < 0.5 || daysAway(s) > 5
                   return (
-                    <tr key={s.id} onClick={() => setOpen(s)} className={`cursor-pointer border-t border-line hover:bg-sky/60 ${s.live ? 'bg-brand-soft/40' : ''}`}>
+                    <tr key={s.id} onClick={() => {
+                        setOpen(s)
+                        track('teacher_learner_opened', { live: !!s.live })
+                      }} className={`cursor-pointer border-t border-line hover:bg-sky/60 ${s.live ? 'bg-brand-soft/40' : ''}`}>
                       <td className="px-4 py-2.5 font-semibold">
                         {s.name}
                         {flag && <span className="ml-2 rounded-full bg-[#fdeeea] px-2 py-0.5 text-[10px] font-black text-coral-dark uppercase">Support</span>}
@@ -242,7 +246,11 @@ export function Teacher() {
         </div>
       )}
 
-      {modal && <AssignModal onClose={() => setModal(false)} onAssign={(a) => (assign(a), setModal(false))} />}
+      {modal && <AssignModal onClose={() => setModal(false)} onAssign={(a) => {
+            assign(a)
+            track('assignment_created', { activity: a.activityId })
+            setModal(false)
+          }} />}
     </div>
   )
 }

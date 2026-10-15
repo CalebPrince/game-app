@@ -3,6 +3,7 @@ import { ChevronRight, GraduationCap, RotateCcw, Users } from 'lucide-react'
 import { useStore } from '../lib/store'
 import { Art, MusicToggle } from '../components/ui'
 import { kidArt } from '../lib/rewards'
+import { track } from '../lib/analytics'
 
 export function Welcome() {
   const nav = useNavigate()
@@ -58,9 +59,17 @@ export function Welcome() {
             </div>
           ))}
         </div>
-        <button onClick={() => reset()} className="inline-flex items-center gap-1.5 justify-self-start text-xs font-bold text-ink-faint hover:text-brand md:col-span-2">
+        <button
+          onClick={() => {
+            reset()
+            track('demo_reset')
+          }}
+          className="inline-flex items-center gap-1.5 justify-self-start text-xs font-bold text-ink-faint hover:text-brand md:col-span-2">
           <RotateCcw className="size-3.5" /> Reset demo data
         </button>
+        <p className="max-w-xl text-xs text-ink-faint md:col-span-2">
+          This is a test version. We record anonymous usage (which screens are opened and what is tapped) to improve the app. We never collect names or anything you type.
+        </p>
       </div>
     </div>
   )

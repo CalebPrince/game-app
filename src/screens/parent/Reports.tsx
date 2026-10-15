@@ -9,6 +9,7 @@ import { effectiveMastery, overallMastery, pct, recommend, strengthsAndNeeds } f
 import { badgeDef } from '../../lib/rewards'
 import { Bar, Card, fmtMins } from '../../components/ui'
 import { dailySeries, periodStats } from './stats'
+import { track } from '../../lib/analytics'
 
 export function ParentReports() {
   const child = useParentChild()
@@ -28,6 +29,7 @@ export function ParentReports() {
   const summary = `${child.name}'s ${label.toLowerCase()} English report: ${cur.list.length} activities, ${fmtMins(cur.secs)} of learning, ${Math.round(cur.accuracy * 100)}% correct answers, overall mastery ${pct(overall)}%. Strengths: ${strengths.map((s) => SKILLS[s.skill].label).join(', ') || 'building'}. Next focus: ${recs.map((r) => r.activity.title).join(', ')}.`
 
   const share = async () => {
+    track('report_shared', { period })
     try {
       if (navigator.share) await navigator.share({ title: `${child.name}'s English Adventure report`, text: summary })
       else {
@@ -48,7 +50,10 @@ export function ParentReports() {
         </div>
         <div className="flex rounded-full bg-white p-1 shadow-sm">
           {([7, 30] as const).map((p) => (
-            <button key={p} onClick={() => setPeriod(p)} className={`rounded-full px-4 py-1.5 text-sm font-bold ${period === p ? 'bg-brand text-white' : 'text-ink-soft'}`}>
+            <button key={p} onClick={() => {
+                setPeriod(p)
+                track('report_period_changed', { period: p })
+              }} className={`rounded-full px-4 py-1.5 text-sm font-bold ${period === p ? 'bg-brand text-white' : 'text-ink-soft'}`}>
               {p === 7 ? 'This week' : 'This month'}
             </button>
           ))}
@@ -161,7 +166,13 @@ export function ParentReports() {
         <button onClick={share} className="btn-game" style={{ ['--face' as string]: 'white', ['--ledge' as string]: '#c9d7ee', ['--ink' as string]: 'var(--color-brand)' }}>
           <Share2 className="size-5" /> Share summary
         </button>
-        <button onClick={() => window.print()} className="btn-game">
+        <button
+          onClick={() => {
+            track('report_downloaded', { period })
+            window.print()
+          }}
+          className="btn-game"
+        >
           <Download className="size-5" /> Download report (PDF)
         </button>
       </div>

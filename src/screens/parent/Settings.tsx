@@ -5,6 +5,7 @@ import { useParentChild } from './ParentShell'
 import { NoChild } from './Overview'
 import { useStore } from '../../lib/store'
 import { Card } from '../../components/ui'
+import { track } from '../../lib/analytics'
 import type { Child, Curriculum } from '../../lib/types'
 
 function Toggle({ on, onChange, label }: { on: boolean; onChange: (v: boolean) => void; label: string }) {
@@ -24,8 +25,14 @@ export function ParentSettings() {
   const [confirm, setConfirm] = useState<'clear' | 'delete' | null>(null)
   const [typed, setTyped] = useState('')
   if (!child) return <NoChild />
-  const set = (patch: Partial<Child>) => update(child.id, patch)
-  const setS = (patch: Partial<Child['settings']>) => update(child.id, { settings: { ...child.settings, ...patch } })
+  const set = (patch: Partial<Child>) => {
+    update(child.id, patch)
+    track('parent_setting_changed', { setting: Object.keys(patch).join(',') })
+  }
+  const setS = (patch: Partial<Child['settings']>) => {
+    update(child.id, { settings: { ...child.settings, ...patch } })
+    track('parent_setting_changed', { setting: Object.keys(patch).join(','), value: String(Object.values(patch)[0]) })
+  }
 
   return (
     <div className="max-w-3xl">
@@ -109,7 +116,7 @@ export function ParentSettings() {
           </div>
           <div className="flex items-start gap-3 rounded-2xl bg-sky p-3 text-sm">
             <ShieldCheck className="mt-0.5 size-5 shrink-0 text-leaf" />
-            <p>No advertising. No public messaging between children. Children cannot create accounts or change these settings.</p>
+            <p>No advertising. No public messaging between children. Children cannot create accounts or change these settings. During this test, anonymous usage (screens opened and taps) is recorded to improve the app; names and typed text are never collected.</p>
           </div>
         </div>
       </Card>
@@ -152,6 +159,7 @@ export function ParentSettings() {
               <button
                 disabled={typed.trim().toLowerCase() !== child.name.toLowerCase()}
                 onClick={() => {
+                  track(confirm === 'clear' ? 'learner_records_cleared' : 'learner_deleted')
                   if (confirm === 'clear') clear(child.id)
                   else {
                     del(child.id)

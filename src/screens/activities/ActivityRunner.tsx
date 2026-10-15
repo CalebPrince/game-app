@@ -11,6 +11,7 @@ import { QuestionView, type Phase } from './questions'
 import { Results } from './Results'
 import { speak } from '../../lib/speech'
 import { playSfx } from '../../lib/sfx'
+import { track } from '../../lib/analytics'
 
 function topicOf(qs: Question[]) {
   const q = qs[0]
@@ -49,6 +50,10 @@ export function ActivityRunner() {
     setPhase('answering')
   }, [index])
 
+  useEffect(() => {
+    if (activity && child) track('activity_started', { activity: activity.id, activity_title: activity.title, skill: activity.skill, track: child.track, difficulty, questions: questions.length })
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+
   if (!activity) return <Navigate to="/play" replace />
   if (!child) return <Navigate to="/who" replace />
   if (minutesToday(attempts, child.id) >= child.settings.dailyLimitMin && !done) return <Navigate to="/play" replace />
@@ -60,7 +65,15 @@ export function ActivityRunner() {
   const multiItem = q?.kind === 'write' // write reports several checklist items at once
 
   const complete = (all: ItemResult[], practice = practiceOnly) => {
-    const r = finish({ child, activity, topic: topicOf(questions), items: all, durationSec: Math.max(30, Math.round((Date.now() - started.current) / 1000)), practiceOnly: practice })
+    const durationSec = Math.max(30, Math.round((Date.now() - started.current) / 1000))
+    const r = finish({ child, activity, topic: topicOf(questions), items: all, durationSec, practiceOnly: practice })
+    track('activity_completed', {
+      activity: activity.id, activity_title: activity.title, skill: activity.skill, track: child.track, difficulty,
+      correct: r.attempt.correct, total: r.attempt.total, accuracy: r.attempt.total ? Math.round((r.attempt.correct / r.attempt.total) * 100) : 0,
+      hints: r.attempt.hints, duration_sec: durationSec, stars: r.stars, practice_only: !!practice,
+      mastery_before: Math.round(r.attempt.masteryBefore * 100), mastery_after: Math.round(r.attempt.masteryAfter * 100),
+      badges_earned: r.badges.length, leveled_up: r.leveledUp,
+    })
     setDone(r)
   }
 
@@ -108,7 +121,14 @@ export function ActivityRunner() {
     <div className="flex min-h-dvh flex-col bg-sky">
       <header className="sticky top-0 z-20 bg-white/90 backdrop-blur">
         <div className="mx-auto flex max-w-3xl items-center gap-3 px-4 py-3">
-          <button onClick={() => nav(-1)} className="grid size-10 place-items-center rounded-full bg-sky text-ink-soft" aria-label="Quit activity">
+          <button
+            onClick={() => {
+              track('activity_quit', { activity: activity.id, skill: activity.skill, track: child.track, at_question: index + 1, of: questions.length })
+              nav(-1)
+            }}
+            className="grid size-10 place-items-center rounded-full bg-sky text-ink-soft"
+            aria-label="Quit activity"
+          >
             <X className="size-5" />
           </button>
           <div className="min-w-0 flex-1">
@@ -142,6 +162,7 @@ export function ActivityRunner() {
               <button
                 onClick={() => {
                   setHint(true)
+                  track('hint_used', { activity: activity.id, skill: activity.skill, question: index + 1 })
                   if (little && hintText) speak(hintText)
                 }}
                 className="inline-flex items-center gap-2 rounded-full bg-white px-4 py-2 text-sm font-bold text-ink-soft shadow-[0_2px_0_#dbe5f3] hover:text-brand"

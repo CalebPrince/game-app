@@ -4,6 +4,7 @@ import { useStore } from '../lib/store'
 import { Avatar } from '../components/ui'
 import { learnerLabel } from '../lib/skills'
 import { level } from '../lib/engine'
+import { setLearnerContext, track } from '../lib/analytics'
 
 export function ChooseLearner() {
   const nav = useNavigate()
@@ -25,6 +26,9 @@ export function ChooseLearner() {
               key={c.id}
               onClick={() => {
                 setActive(c.id)
+                const sample = c.id === 'ama' || c.id === 'kofi'
+                setLearnerContext({ track: c.track, grade: c.grade, age: c.age, curriculum: c.curriculum, sample })
+                track('learner_selected', { track: c.track, grade: c.grade ?? null, age: c.age ?? null, curriculum: c.curriculum, sample_profile: sample })
                 nav('/play')
               }}
               className="rise flex items-center gap-4 rounded-3xl border-2 border-white p-3 pr-4 text-left shadow-[0_3px_0_#d3dff0] transition hover:-translate-y-0.5"

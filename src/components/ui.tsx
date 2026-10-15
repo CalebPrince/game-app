@@ -1,6 +1,7 @@
 import { useState, type CSSProperties, type ReactNode } from 'react'
 import { ImageOff, Music, Volume2, VolumeX } from 'lucide-react'
 import { music, useMusicEnabled } from '../lib/music'
+import { track } from '../lib/analytics'
 import { speak } from '../lib/speech'
 import { itemArt } from '../lib/rewards'
 import type { AvatarConfig } from '../lib/types'
@@ -111,7 +112,10 @@ export function MusicToggle({ dark = false }: { dark?: boolean }) {
   return (
     <button
       type="button"
-      onClick={() => music.setEnabled(!on)}
+      onClick={() => {
+        music.setEnabled(!on)
+        track('music_toggled', { on: !on })
+      }}
       aria-label={on ? 'Turn music off' : 'Turn music on'}
       aria-pressed={on}
       title={on ? 'Music on' : 'Music off'}

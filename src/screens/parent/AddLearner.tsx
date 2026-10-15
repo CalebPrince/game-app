@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useStore } from '../../lib/store'
 import { KIDS } from '../../lib/rewards'
 import { Card } from '../../components/ui'
+import { track as trackEvent } from '../../lib/analytics'
 import type { Child, Curriculum, Track } from '../../lib/types'
 
 export function AddLearner() {
@@ -24,6 +25,7 @@ export function AddLearner() {
       settings: { dailyLimitMin: limit, voiceConsent: voice, aiCompanion: true }, createdAt: new Date().toISOString(), missionsClaimed: [],
     }
     add(c)
+    trackEvent('learner_added', { track, grade: c.grade ?? null, age: c.age ?? null, curriculum, voice_consent: voice, daily_limit_min: limit })
     nav('/parent')
   }
 

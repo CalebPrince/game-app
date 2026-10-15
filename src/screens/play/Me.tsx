@@ -6,6 +6,7 @@ import { KIDS, SHOP, badgeDef, itemArt, kidArt } from '../../lib/rewards'
 import { learnerLabel } from '../../lib/skills'
 import { Card, icon } from '../../components/ui'
 import { playSfx } from '../../lib/sfx'
+import { track } from '../../lib/analytics'
 
 const ALL_BADGES = ['first-steps', 'perfect', 'streak-3', 'brave-try', 'level-5']
 
@@ -35,7 +36,10 @@ export function Me() {
           <div className="mb-2 text-left text-xs font-bold tracking-wide text-ink-faint uppercase">Choose your explorer</div>
           <div className="grid grid-cols-6 gap-1.5">
             {KIDS.map((k) => (
-              <button key={k} onClick={() => update(child.id, { avatar: { ...child.avatar, base: k } })} className={`overflow-hidden rounded-xl border-2 bg-white ${child.avatar.base === k ? 'border-brand' : 'border-line'}`} aria-label={`Choose ${k}`}>
+              <button key={k} onClick={() => {
+                update(child.id, { avatar: { ...child.avatar, base: k } })
+                track('avatar_changed', { character: k })
+              }} className={`overflow-hidden rounded-xl border-2 bg-white ${child.avatar.base === k ? 'border-brand' : 'border-line'}`} aria-label={`Choose ${k}`}>
                 <img src={`images/sheet/heads/${k}.png`} alt="" className="aspect-square w-full bg-[#ffe7a6] object-cover" />
               </button>
             ))}
@@ -88,6 +92,7 @@ export function Me() {
                   if (child.coins < it.price) return setMsg(`You need ${it.price - child.coins} more coins for the ${it.name}. Keep learning!`)
                   if (buy(child.id, it.id, it.price)) {
                     playSfx('reward')
+                    track('shop_item_bought', { item: it.id, price: it.price })
                     setMsg(`You got the ${it.name}!`)
                   }
                 }}
