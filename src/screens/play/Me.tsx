@@ -5,6 +5,7 @@ import { useStore } from '../../lib/store'
 import { KIDS, SHOP, badgeDef, itemArt, kidArt } from '../../lib/rewards'
 import { learnerLabel } from '../../lib/skills'
 import { Card, icon } from '../../components/ui'
+import { playSfx } from '../../lib/sfx'
 
 const ALL_BADGES = ['first-steps', 'perfect', 'streak-3', 'brave-try', 'level-5']
 
@@ -85,7 +86,10 @@ export function Me() {
                 onClick={() => {
                   if (owned) return equip(child.id, it.id)
                   if (child.coins < it.price) return setMsg(`You need ${it.price - child.coins} more coins for the ${it.name}. Keep learning!`)
-                  if (buy(child.id, it.id, it.price)) setMsg(`You got the ${it.name}!`)
+                  if (buy(child.id, it.id, it.price)) {
+                    playSfx('reward')
+                    setMsg(`You got the ${it.name}!`)
+                  }
                 }}
                 className={`relative flex flex-col items-center rounded-2xl border-2 bg-white p-3 text-center shadow-[0_3px_0_#dbe5f3] ${worn ? 'border-brand' : 'border-transparent'}`}
               >

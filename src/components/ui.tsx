@@ -1,5 +1,6 @@
 import { useState, type CSSProperties, type ReactNode } from 'react'
-import { ImageOff, Volume2 } from 'lucide-react'
+import { ImageOff, Music, Volume2, VolumeX } from 'lucide-react'
+import { music, useMusicEnabled } from '../lib/music'
 import { speak } from '../lib/speech'
 import { itemArt } from '../lib/rewards'
 import type { AvatarConfig } from '../lib/types'
@@ -103,4 +104,20 @@ export function fmtDate(iso: string) {
 export function fmtMins(sec: number) {
   const m = Math.round(sec / 60)
   return m >= 60 ? `${Math.floor(m / 60)}h ${m % 60}m` : `${m} min`
+}
+
+export function MusicToggle({ dark = false }: { dark?: boolean }) {
+  const on = useMusicEnabled()
+  return (
+    <button
+      type="button"
+      onClick={() => music.setEnabled(!on)}
+      aria-label={on ? 'Turn music off' : 'Turn music on'}
+      aria-pressed={on}
+      title={on ? 'Music on' : 'Music off'}
+      className={`relative grid size-10 shrink-0 place-items-center rounded-full transition ${dark ? 'bg-white/15 text-white' : 'bg-white text-brand shadow-[0_2px_0_#dbe5f3]'}`}
+    >
+      {on ? <Music className="size-5" /> : <VolumeX className="size-5 opacity-70" />}
+    </button>
+  )
 }

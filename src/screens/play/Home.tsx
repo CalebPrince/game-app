@@ -26,8 +26,10 @@ export function Home() {
   const spoke = useRef(false)
   useEffect(() => {
     if (little && !spoke.current) {
-      spoke.current = true
-      const t = setTimeout(() => speakSeq([VOICE.hi(child.name), greeting]), 600)
+      const t = setTimeout(() => {
+        spoke.current = true
+        speakSeq([VOICE.hi(child.name), greeting])
+      }, 600)
       return () => clearTimeout(t)
     }
   }, [little, child.name, greeting])

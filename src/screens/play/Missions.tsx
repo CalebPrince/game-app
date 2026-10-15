@@ -1,5 +1,6 @@
 import { useNavigate } from 'react-router-dom'
 import confetti from 'canvas-confetti'
+import { playSfx } from '../../lib/sfx'
 import { Check, ClipboardList } from 'lucide-react'
 import { useActiveChild } from './PlayShell'
 import { recommend } from '../../lib/engine'
@@ -76,6 +77,7 @@ export function Missions() {
             disabled={done < 3}
             onClick={() => {
               claim(child.id, BONUS.coins, BONUS.xp)
+              playSfx('reward')
               confetti({ particleCount: 120, spread: 80, origin: { y: 0.7 } })
             }}
             className="btn-game px-4 py-2"

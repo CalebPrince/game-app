@@ -1,7 +1,7 @@
 import { useNavigate } from 'react-router-dom'
 import { ChevronRight, GraduationCap, RotateCcw, Users } from 'lucide-react'
 import { useStore } from '../lib/store'
-import { Art } from '../components/ui'
+import { Art, MusicToggle } from '../components/ui'
 import { kidArt } from '../lib/rewards'
 
 export function Welcome() {
@@ -9,7 +9,10 @@ export function Welcome() {
   const reset = useStore((s) => s.reset)
   return (
     <div className="min-h-dvh bg-[radial-gradient(120%_80%_at_20%_0%,#cfe5ff_0%,#eaf4ff_55%,#f6fbff_100%)]">
-      <div className="mx-auto grid max-w-6xl gap-6 px-4 pt-4 pb-28 md:grid-cols-[1.35fr_1fr] md:items-center md:gap-10 md:px-8 md:pt-12">
+      <div className="relative mx-auto grid max-w-6xl gap-6 px-4 pt-16 pb-28 md:grid-cols-[1.35fr_1fr] md:items-center md:gap-10 md:px-8 md:pt-12">
+        <div className="absolute top-3 right-4 z-10 md:top-5 md:right-8">
+          <MusicToggle />
+        </div>
         <div className="relative">
           <Art src="images/welcome-hero.webp" alt="Two children and a husky waving in front of a fairytale castle, with the English Adventure logo" className="aspect-[702/293] w-full rounded-[28px] object-cover shadow-[0_18px_40px_-20px_rgba(18,38,79,.55)] ring-4 ring-white" />
           <img src="images/sheet/mascots/star.png" alt="" className="bob absolute -top-5 -right-3 w-16 md:w-20" />

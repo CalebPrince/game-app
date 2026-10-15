@@ -1,7 +1,7 @@
 import { NavLink, Navigate, Outlet, useNavigate, useOutletContext } from 'react-router-dom'
 import { BarChart3, CalendarCheck, House, LogOut, Moon, UserRound } from 'lucide-react'
 import { minutesToday, useChild, useStore } from '../../lib/store'
-import { Avatar, Bar, CoinChip, icon } from '../../components/ui'
+import { Avatar, Bar, CoinChip, MusicToggle, icon } from '../../components/ui'
 import { learnerLabel } from '../../lib/skills'
 import { level } from '../../lib/engine'
 import type { Child } from '../../lib/types'
@@ -43,6 +43,7 @@ export function PlayShell() {
             </div>
           </div>
           <CoinChip coins={child.coins} />
+          <MusicToggle dark />
           <button onClick={() => nav('/who')} className="grid size-10 place-items-center rounded-full bg-white/15" aria-label="Switch learner">
             <LogOut className="size-5" />
           </button>

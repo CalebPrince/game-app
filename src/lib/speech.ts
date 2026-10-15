@@ -1,4 +1,5 @@
 import { lineKey } from './voiceKey'
+import { music } from './music'
 // Browser speech: text-to-speech for instructions/words, and speech recognition for Speaking Studio.
 let voice: SpeechSynthesisVoice | null = null
 
@@ -76,9 +77,14 @@ export function speak(text: string, opts: { rate?: number } = {}) {
 export async function speakSeq(lines: string[], opts: { rate?: number } = {}) {
   stopAll()
   const token = seq
-  for (const l of lines) {
-    if (token !== seq) return
-    await playOne(l, opts.rate ?? 0.9, token)
+  music.duck(true)
+  try {
+    for (const l of lines) {
+      if (token !== seq) return
+      await playOne(l, opts.rate ?? 0.9, token)
+    }
+  } finally {
+    music.duck(false)
   }
 }
 

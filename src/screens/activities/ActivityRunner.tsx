@@ -6,28 +6,11 @@ import { minutesToday, useChild, useStore, type FinishResult } from '../../lib/s
 import { SKILLS, curriculumLabel } from '../../lib/skills'
 import { emptyMastery } from '../../lib/engine'
 import type { ItemResult } from '../../lib/types'
-import { Bar, CoinChip } from '../../components/ui'
+import { Bar, CoinChip, MusicToggle } from '../../components/ui'
 import { QuestionView, type Phase } from './questions'
 import { Results } from './Results'
 import { speak } from '../../lib/speech'
-
-const ctx = typeof window !== 'undefined' ? new (window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)() : null
-function chime(good: boolean) {
-  if (!ctx) return
-  const notes = good ? [660, 880] : [300, 240]
-  notes.forEach((f, i) => {
-    const o = ctx.createOscillator()
-    const g = ctx.createGain()
-    o.frequency.value = f
-    o.type = good ? 'triangle' : 'sine'
-    g.gain.setValueAtTime(0.0001, ctx.currentTime + i * 0.12)
-    g.gain.exponentialRampToValueAtTime(0.18, ctx.currentTime + i * 0.12 + 0.02)
-    g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + i * 0.12 + 0.25)
-    o.connect(g).connect(ctx.destination)
-    o.start(ctx.currentTime + i * 0.12)
-    o.stop(ctx.currentTime + i * 0.12 + 0.3)
-  })
-}
+import { playSfx } from '../../lib/sfx'
 
 function topicOf(qs: Question[]) {
   const q = qs[0]
@@ -84,12 +67,12 @@ export function ActivityRunner() {
   const submit = (correct: boolean) => {
     if (phase === 'correct' || phase === 'revealed') return
     if (correct) {
-      chime(true)
+      playSfx('correct')
       setResults((r) => [...r, { correct: true, tries, hint, difficulty, tag: q.tag }])
       setPhase('correct')
       if (little) speak(VOICE.praise[Math.floor(Math.random() * VOICE.praise.length)])
     } else {
-      chime(false)
+      playSfx('wrong')
       const t = tries + 1
       if (t >= maxTries) {
         setResults((r) => [...r, { correct: false, tries: t, hint, difficulty, tag: q.tag }])
@@ -138,6 +121,7 @@ export function ActivityRunner() {
             <Bar value={(index + (phase === 'correct' || phase === 'revealed' ? 1 : 0)) / questions.length} color={color} height={8} />
           </div>
           {!little && <CoinChip coins={child.coins} />}
+          <MusicToggle />
         </div>
         {!little && <div className="mx-auto max-w-3xl px-4 pb-2 text-[11px] font-bold tracking-wide text-ink-faint uppercase">{curriculumLabel(child)} · {SKILLS[activity.skill].label}</div>}
       </header>

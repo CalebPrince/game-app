@@ -1,6 +1,9 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
-import { HashRouter, Navigate, Route, Routes } from 'react-router-dom'
+import { useEffect } from 'react'
+import { HashRouter, Navigate, Route, Routes, useLocation } from 'react-router-dom'
+import { music } from './lib/music'
+import './lib/sfx'
 import './index.css'
 import { Welcome } from './screens/Welcome'
 import { ChooseLearner } from './screens/ChooseLearner'
@@ -20,9 +23,16 @@ import { ParentSettings } from './screens/parent/Settings'
 import { AddLearner } from './screens/parent/AddLearner'
 import { Teacher } from './screens/teacher/Teacher'
 
+function MusicRoutes() {
+  const { pathname } = useLocation()
+  useEffect(() => music.setAllowed(!pathname.startsWith('/parent') && !pathname.startsWith('/teacher')), [pathname])
+  return null
+}
+
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <HashRouter>
+      <MusicRoutes />
       <Routes>
         <Route path="/" element={<Welcome />} />
         <Route path="/who" element={<ChooseLearner />} />

@@ -4,6 +4,7 @@ import { VOICE, type Question } from '../../lib/content'
 import type { Difficulty, ItemResult } from '../../lib/types'
 import { Art, SpeakButton } from '../../components/ui'
 import { compareSpeech, recognizer, speak } from '../../lib/speech'
+import { music } from '../../lib/music'
 import { reviewWriting } from '../../lib/writing'
 
 export type Phase = 'answering' | 'retry' | 'correct' | 'revealed'
@@ -501,6 +502,7 @@ function Speak({ q, onItems, voiceConsent }: Props & { q: Extract<Question, { ki
     const r = recognizer()
     if (!r) return
     rec.current = r
+    music.hold(true)
     setState('listening')
     setErr('')
     r.onresult = (e) => {
@@ -514,7 +516,10 @@ function Speak({ q, onItems, voiceConsent }: Props & { q: Extract<Question, { ki
       setErr(e.error === 'not-allowed' ? 'Microphone access was blocked. You can still practise by reading aloud.' : 'I could not hear that. Try again a little louder.')
       setState('error')
     }
-    r.onend = () => setState((s) => (s === 'listening' ? 'idle' : s))
+    r.onend = () => {
+      music.hold(false)
+      setState((s) => (s === 'listening' ? 'idle' : s))
+    }
     r.start()
   }
 
