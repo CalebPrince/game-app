@@ -1,7 +1,7 @@
 import { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import confetti from 'canvas-confetti'
-import { ArrowRight, BarChart3 } from 'lucide-react'
+import { ArrowRight, BarChart3, TrendingUp } from 'lucide-react'
 import type { ActivityDef } from '../../lib/content'
 import type { Child } from '../../lib/types'
 import type { FinishResult } from '../../lib/store'
@@ -56,6 +56,12 @@ export function Results({ child: before, activity, result }: { child: Child; act
             </span>
           </div>
           {leveledUp && <div className="pop mt-3 rounded-2xl bg-sun/25 py-2 font-display text-lg font-semibold">Level up! You reached a new level.</div>}
+          {result.nextRound === 'harder' && (
+            <div className="pop mt-3 flex items-center justify-center gap-2 rounded-2xl bg-brand-soft py-2 font-display text-lg font-semibold text-brand">
+              <TrendingUp className="size-5" /> Next round is harder. You are ready!
+            </div>
+          )}
+          {result.nextRound === 'easier' && <div className="mt-3 rounded-2xl bg-white py-2 text-sm font-bold text-ink-soft ring-1 ring-line">Next round goes a little slower, so you can practise.</div>}
           {badges.length > 0 && (
             <div className="mt-4 border-t border-line pt-3">
               <div className="text-xs font-bold tracking-wide text-ink-faint uppercase">New badge{badges.length > 1 ? 's' : ''}!</div>
