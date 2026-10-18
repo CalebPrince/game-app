@@ -37,10 +37,20 @@ export function applyItems(m: SkillMastery, items: ItemResult[], when: string, w
     evidence += weight
   }
   score = Math.max(0, Math.min(1, score))
-  return { score, evidence, lastPracticed: when, difficulty: nextDifficulty({ ...m, score, evidence }) }
+  // a full round sets the next round's level; a practice round (lower weight) leaves it as it is
+  return { score, evidence, lastPracticed: when, difficulty: weight === 1 ? nextDifficulty({ ...m, score, evidence }, items) : m.difficulty }
 }
 
-export function nextDifficulty(m: SkillMastery): Difficulty {
+/** Each round is harder than the last once the child is ready: a strong round (80% or more right on the first try,
+ *  without a hint) moves the next round up a level, a hard round (under half) moves it back down so the child is not
+ *  stuck, anything between keeps the level. Without a round, the long-run mastery decides. */
+export function nextDifficulty(m: SkillMastery, round?: ItemResult[]): Difficulty {
+  if (round && round.length) {
+    const firstTry = round.filter((r) => r.correct && r.tries === 0 && !r.hint).length / round.length
+    if (firstTry >= 0.8) return Math.min(3, m.difficulty + 1) as Difficulty
+    if (firstTry < 0.5) return Math.max(1, m.difficulty - 1) as Difficulty
+    return m.difficulty
+  }
   if (m.evidence >= 6 && m.score >= 0.8) return Math.min(3, m.difficulty + 1) as Difficulty
   if (m.score < 0.45 && m.evidence >= 4) return Math.max(1, m.difficulty - 1) as Difficulty
   return m.difficulty

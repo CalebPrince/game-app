@@ -319,6 +319,29 @@ export const ACTIVITIES: ActivityDef[] = [
 ]
 export const activityById = (id: string) => ACTIVITIES.find((a) => a.id === id)
 
+/* ---------- a round gets harder as it goes ----------
+   A round opens with a warm-up one level below the child's level, keeps to their level in the middle, and ends
+   with a challenge one level above, so each question is a little harder than the one before. Rounds of one or two
+   items (writing) and rounds built around one passage (Reading Quest) keep a single level. */
+export interface RoundItem { q: Question; d: Difficulty }
+const itemKey = (q: Question) =>
+  'word' in q ? q.word : 'letter' in q ? q.letter : 'text' in q ? q.text : 'words' in q ? q.words.join(' ') : 'say' in q ? `${q.kind}:${q.say}` : `${q.kind}:${'prompt' in q ? q.prompt : ''}`
+export function buildRound(a: ActivityDef, child: Child, d: Difficulty): RoundItem[] {
+  const main = a.build(child, d)
+  if (main.length < 3 || main.some((q) => q.kind === 'mcq' && q.passage)) return main.map((q) => ({ q, d }))
+  const lo = Math.max(1, d - 1) as Difficulty
+  const hi = Math.min(3, d + 1) as Difficulty
+  const used = new Set<string>()
+  const take = (list: Question[], n: number, level: Difficulty) =>
+    list.filter((q) => !used.has(itemKey(q))).slice(0, n).map((q) => (used.add(itemKey(q)), { q, d: level }))
+  const warm = lo < d ? take(a.build(child, lo), 1, lo) : []
+  const top = hi > d ? take(a.build(child, hi), 1, hi) : []
+  const want = main.length - warm.length - top.length
+  let mid = take(main, want, d)
+  if (mid.length < want) mid = mid.concat(take(a.build(child, d), want - mid.length, d))
+  return [...warm, ...mid, ...top]
+}
+
 /* ---------- spoken lines (shared by the app and scripts/voice-lines.ts) ---------- */
 export const VOICE = {
   traceLetter: (l: string) => `Trace the letter ${l}`,

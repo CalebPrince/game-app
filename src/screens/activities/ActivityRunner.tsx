@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Navigate, useLocation, useNavigate, useParams } from 'react-router-dom'
 import { Lightbulb, X } from 'lucide-react'
-import { VOICE, activityById, type Question } from '../../lib/content'
+import { VOICE, activityById, buildRound, type Question } from '../../lib/content'
 import { minutesToday, useChild, useStore, type FinishResult } from '../../lib/store'
 import { SKILLS, curriculumLabel } from '../../lib/skills'
 import { emptyMastery } from '../../lib/engine'
@@ -34,7 +34,9 @@ export function ActivityRunner() {
   const finish = useStore((s) => s.finishActivity)
 
   const difficulty = child?.mastery[activity?.skill ?? 'spelling']?.difficulty ?? emptyMastery().difficulty
-  const questions = useMemo(() => (activity && child ? activity.build(child, difficulty) : []), [activity?.id, child?.id]) // eslint-disable-line react-hooks/exhaustive-deps
+  // easy to hard through the round: each item keeps its own level (buildRound in content.ts)
+  const round = useMemo(() => (activity && child ? buildRound(activity, child, difficulty) : []), [activity?.id, child?.id]) // eslint-disable-line react-hooks/exhaustive-deps
+  const questions = useMemo(() => round.map((r) => r.q), [round])
   const [index, setIndex] = useState(0)
   const [results, setResults] = useState<ItemResult[]>([])
   const [tries, setTries] = useState(0)
@@ -60,6 +62,7 @@ export function ActivityRunner() {
 
   const little = child.track === 'little'
   const q = questions[index]
+  const qd = round[index]?.d ?? difficulty // this question's level
   const color = SKILLS[activity.skill].color
   const maxTries = little ? 3 : q?.kind === 'mcq' || q?.kind === 'dictation' ? 2 : 3
   const multiItem = q?.kind === 'write' // write reports several checklist items at once
@@ -81,14 +84,14 @@ export function ActivityRunner() {
     if (phase === 'correct' || phase === 'revealed') return
     if (correct) {
       playSfx('correct')
-      setResults((r) => [...r, { correct: true, tries, hint, difficulty, tag: q.tag }])
+      setResults((r) => [...r, { correct: true, tries, hint, difficulty: qd, tag: q.tag }])
       setPhase('correct')
       if (little) speak(VOICE.praise[Math.floor(Math.random() * VOICE.praise.length)])
     } else {
       playSfx('wrong')
       const t = tries + 1
       if (t >= maxTries) {
-        setResults((r) => [...r, { correct: false, tries: t, hint, difficulty, tag: q.tag }])
+        setResults((r) => [...r, { correct: false, tries: t, hint, difficulty: qd, tag: q.tag }])
         setPhase('revealed')
         if (little) speak(VOICE.reveal)
       } else {
@@ -148,7 +151,7 @@ export function ActivityRunner() {
 
       <main className="mx-auto w-full max-w-3xl flex-1 px-4 pt-4 pb-44">
         {q && (
-          <QuestionView key={index} q={q} little={little} phase={phase} onSubmit={submit} onItems={submitItems} voiceConsent={child.settings.voiceConsent} difficulty={difficulty} />
+          <QuestionView key={index} q={q} little={little} phase={phase} onSubmit={submit} onItems={submitItems} voiceConsent={child.settings.voiceConsent} difficulty={qd} />
         )}
 
         {showCompanion && (phase === 'answering' || phase === 'retry') && (

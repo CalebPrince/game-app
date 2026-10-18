@@ -20,6 +20,8 @@ export interface FinishResult {
   stars: number
   badges: string[]
   leveledUp: boolean
+  /** how the next round of this skill compares with this one (engine.nextDifficulty) */
+  nextRound: 'harder' | 'easier' | 'same'
 }
 
 interface State {
@@ -102,7 +104,8 @@ export const useStore = create<State>()(
               : c,
           ),
         }))
-        return { attempt, stars: r.stars, badges, leveledUp: lvlAfter > lvlBefore }
+        const nextRound = next.difficulty > prev.difficulty ? 'harder' : next.difficulty < prev.difficulty ? 'easier' : 'same'
+        return { attempt, stars: r.stars, badges, leveledUp: lvlAfter > lvlBefore, nextRound }
       },
       buy: (childId, item, price) => {
         const c = get().children.find((x) => x.id === childId)
