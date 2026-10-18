@@ -40,8 +40,10 @@ function fadeTo(v: number) {
   clearInterval(fadeTimer)
   const start = a.volume
   const t0 = Date.now()
+  // dips fast (a tap is only a quarter of a second), comes back gently
+  const ms = v < start ? 60 : 350
   fadeTimer = window.setInterval(() => {
-    const k = Math.min(1, (Date.now() - t0) / 350)
+    const k = Math.min(1, (Date.now() - t0) / ms)
     a.volume = start + (v - start) * k
     if (k >= 1) clearInterval(fadeTimer)
   }, 30)

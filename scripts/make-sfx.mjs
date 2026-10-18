@@ -1,6 +1,7 @@
 // Builds the UI sound effects in public/audio/sfx.
 // tap.mp3     : trimmed from the ElevenLabs "soft bubbly pop" generation (pass its path as argv[2]).
 // correct/wrong/reward.mp3 : synthesised bell tones (sine partials with exponential decay).
+// celebrate.mp3 : star pings and a chord, with the kids' cheer in scripts/assets mixed on top.
 // Needs ffmpeg on PATH. Run: node scripts/make-sfx.mjs "<path to ElevenLabs pop mp3>"
 import fs from 'node:fs'
 import { execFileSync } from 'node:child_process'
@@ -58,6 +59,24 @@ render('wrong', 0.6, (b) => {
 render('reward', 1.3, (b) => {
   ;[1046.5, 1318.5, 1568, 2093].forEach((f, i) => note(b, i * 0.085, f, 1.0 - i * 0.1, 0.45, 4.5))
 })
+
+// Celebrate (the activity complete screen): a ping as each of the three stars pops in (Results.tsx pops them at
+// 200, 350 and 500 ms), a bright major chord, then a real group of children shouting "Yay!"
+// (scripts/assets/kids-yay-cheer.mp3, Pixabay sound effect 299607, Pixabay Content License, no credit required) on top.
+// The cheer is only trimmed and set in level (a limiter, no loudness normalising), so it keeps its natural sound.
+render('celebrate-chimes', 2.2, (b) => {
+  ;[1318.5, 1568, 2093].forEach((f, i) => note(b, 0.2 + i * 0.15, f, 0.7, 0.5, 5))
+  ;[1046.5, 1318.5, 1568, 2093].forEach((f) => note(b, 0.68, f, 1.5, 0.32, 2.6))
+  for (let i = 0; i < 6; i++) note(b, 0.75 + i * 0.07, 2637 + (i % 3) * 300, 0.4, 0.12, 6)
+})
+const yay = 'scripts/assets/kids-yay-cheer.mp3'
+if (fs.existsSync(yay)) {
+  execFileSync('ffmpeg', ['-hide_banner', '-loglevel', 'error', '-y', '-i', `${OUT}/celebrate-chimes.mp3`, '-i', yay, '-filter_complex',
+    '[1:a]silenceremove=start_periods=1:start_threshold=-45dB,afade=t=out:st=1.6:d=0.4,volume=0.7,adelay=600:all=1[y];' +
+    '[0:a]volume=0.55[c];[c][y]amix=inputs=2:normalize=0:duration=longest,alimiter=limit=0.89:attack=5:release=80,aresample=44100',
+    '-ac', '2', '-b:a', '160k', `${OUT}/celebrate.mp3`])
+  fs.unlinkSync(`${OUT}/celebrate-chimes.mp3`)
+} else fs.renameSync(`${OUT}/celebrate-chimes.mp3`, `${OUT}/celebrate.mp3`)
 
 // Tap: take the first transient of the ElevenLabs pop and keep it short.
 const pop = process.argv[2]
