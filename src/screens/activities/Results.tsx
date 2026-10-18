@@ -25,7 +25,7 @@ export function Results({ child: before, activity, result }: { child: Child; act
   const headline = attempt.practiceOnly ? 'Nice practice!' : great ? 'Well Done!' : attempt.correct / attempt.total >= 0.5 ? 'Good effort!' : 'Keep going!'
 
   useEffect(() => {
-    playSfx('reward')
+    playSfx('celebrate')
     confetti({ particleCount: great ? 160 : 70, spread: 90, origin: { y: 0.35 }, colors: ['#ffc22e', '#1f6bff', '#1fae6a', '#ef4f7a', '#8a5cf6'] })
     if (little) speakSeq(attempt.practiceOnly ? [headline] : [headline, VOICE.score(attempt.correct, attempt.total)])
   }, []) // eslint-disable-line react-hooks/exhaustive-deps

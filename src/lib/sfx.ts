@@ -1,15 +1,17 @@
 // Short UI sound effects (ElevenLabs-generated files in public/audio/sfx), played through Web Audio
 // for low latency. Taps play on any button in the child app; parent/teacher portals stay silent.
-import { musicArea } from './music'
+// The background music dips under every sound so it is heard clearly, and comes back when it ends.
+import { music, musicArea } from './music'
 
-type Name = 'tap' | 'correct' | 'wrong' | 'reward'
+type Name = 'tap' | 'correct' | 'wrong' | 'reward' | 'celebrate'
 const FILES: Record<Name, string> = {
   tap: 'audio/sfx/tap.mp3',
   correct: 'audio/sfx/correct.mp3',
   wrong: 'audio/sfx/wrong.mp3',
   reward: 'audio/sfx/reward.mp3',
+  celebrate: 'audio/sfx/celebrate.mp3',
 }
-const VOLUME: Record<Name, number> = { tap: 0.45, correct: 0.6, wrong: 0.5, reward: 0.6 }
+const VOLUME: Record<Name, number> = { tap: 0.45, correct: 0.6, wrong: 0.5, reward: 0.6, celebrate: 0.7 }
 
 let ctx: AudioContext | null = null
 const buffers: Partial<Record<Name, AudioBuffer>> = {}
@@ -39,6 +41,8 @@ export function playSfx(name: Name) {
   gain.gain.value = VOLUME[name]
   src.buffer = buf
   src.connect(gain).connect(c.destination)
+  music.duck(true)
+  src.onended = () => music.duck(false)
   src.start()
 }
 
